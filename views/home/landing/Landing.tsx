@@ -18,6 +18,7 @@ import {
   Smartphone,
   UploadCloud,
 } from "lucide-react";
+import {useRouter} from "next/navigation";
 
 interface Product {
   id: string;
@@ -54,6 +55,7 @@ export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [view, setView] = useState<ViewMode>("landing");
   const [orderStep, setOrderStep] = useState<number>(1);
+  const router = useRouter();
 
   // 주문 데이터 상태 초기화
   const [orderData, setOrderData] = useState<OrderData>({
@@ -126,9 +128,10 @@ export default function Landing() {
 
   // --- 핸들러 함수 ---
   const startOrder = (): void => {
-    setView("order");
-    setOrderStep(1);
-    window.scrollTo(0, 0);
+    router.push('/pay')
+    // setView("order");
+    // setOrderStep(1);
+    // window.scrollTo(0, 0);
   };
 
   return (

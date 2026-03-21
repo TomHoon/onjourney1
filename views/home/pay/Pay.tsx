@@ -1,5 +1,5 @@
 "use client";
-
+import styles from '@/views/home/pay/pay.module.css';
 import React, {useState, useRef, ChangeEvent, useEffect} from "react";
 import {
   Camera,
@@ -18,6 +18,10 @@ import {
   Smartphone,
   UploadCloud,
 } from "lucide-react";
+import ThumbnailMaker from "@/views/thumbnailMaker/ThumbnailMaker";
+import {usePay} from "@/views/home/pay/PayProvider";
+import usePayView from "@/views/home/pay/usePayView";
+import clsx from "clsx";
 
 // --- Types & Interfaces ---
 interface Product {
@@ -50,10 +54,13 @@ interface OrderData {
 }
 
 type ViewMode = "landing" | "order";
+
 export default function PayStep1() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isPaying, setIsPaying] = useState<boolean>(false);
   const [view, setView] = useState<ViewMode>("landing");
-  const [orderStep, setOrderStep] = useState<number>(1);
+  const {orderStep, setOrderStep} = usePay();
+  const {widgets, renderPaymentWidgets} = usePayView();
 
   // 주문 데이터 상태 초기화
   const [orderData, setOrderData] = useState<OrderData>({
@@ -118,10 +125,47 @@ export default function PayStep1() {
     }
   };
 
-  const processPayment = (): void => {
-    if (!orderData.userInfo.isAuthed) return alert("본인 인증이 필요합니다.");
-    const isSuccess = Math.random() > 0.1;
-    setOrderStep(isSuccess ? 6 : 7);
+  const payToss = async () => {
+    if (!widgets) return;
+    const selectedPaymentMethod = await widgets.requestPayment({
+      orderId: "BwbZeLGvEfeWaOg2hik5b",
+      orderName: "사진",
+      successUrl: window.location.origin + "/pay/success",
+      failUrl: window.location.origin + "/pay/fail",
+      customerEmail: "customer123@gmail.com",
+      customerName: "고객",
+      customerMobilePhone: "01012341234",
+    })
+    console.log("selectedPaymentMethod: ", selectedPaymentMethod);
+  }
+  
+  const processPayment = async () => {
+    // if (!orderData.userInfo.isAuthed) return alert("본인 인증이 필요합니다.");
+    await renderPaymentWidgets();
+    setIsPaying(true);
+    
+    try {
+      if (!widgets) return;
+      
+      // ------ '결제하기' 버튼 누르면 결제창 띄우기 ------
+      // 결제를 요청하기 전에 orderId, amount를 서버에 저장하세요.
+      // 결제 과정에서 악의적으로 결제 금액이 바뀌는 것을 확인하는 용도입니다.
+      // await widgets.requestPayment({
+      //   orderId: "BwbZeLGvEfeWaOg2hik5b",
+      //   orderName: "토스 티셔츠 외 2건",
+      //   successUrl: window.location.origin + "/success",
+      //   failUrl: window.location.origin + "/fail",
+      //   customerEmail: "customer123@gmail.com",
+      //   customerName: "김토스",
+      //   customerMobilePhone: "01012341234",
+      // });
+      
+    } catch (e) {
+      console.error(e);
+    }
+    
+    // const isSuccess = Math.random() > 0.1;
+    // setOrderStep(isSuccess ? 6 : 7);
   };
 
   // 랜딩 페이지 뷰
@@ -142,7 +186,7 @@ export default function PayStep1() {
             <ChevronLeft className="w-5 h-5 mr-1" /> 이전 단계
           </button>
           <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3].map((s) => (
               <div
                 key={s}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${orderStep === s ? "w-6 bg-blue-600" : "bg-gray-300"}`}
@@ -190,7 +234,12 @@ export default function PayStep1() {
             </div>
           </div>
         )}
-
+        
+        
+        {orderStep === 2 && (
+          <ThumbnailMaker/>
+        )}
+        
         {/* Step 2: 템플릿 선택 */}
         {/* {orderStep === 2 && (
           <div className="animate-in fade-in slide-in-from-bottom-4">
@@ -312,7 +361,8 @@ export default function PayStep1() {
         )} */}
 
         {/* Step 5: 최종 확인 및 본인인증 */}
-        {orderStep === 5 && orderData.product && orderData.template && (
+        {/*{orderStep === 3 && orderData.product && orderData.template && (*/}
+        {orderStep === 3 && orderData.product && (
           <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8">
             <h2 style={{color: "black"}} className="text-3xl font-bold">
               최종 확인
@@ -320,7 +370,7 @@ export default function PayStep1() {
 
             <div className="bg-white p-6 rounded-3xl shadow-md border border-gray-100 flex gap-6">
               <div className="w-24 aspect-[4/6] bg-gray-100 rounded-lg flex gap-1 p-1 border">
-                {Array.from({length: orderData.template.slots}).map((_, i) => (
+                {Array.from({length: 1}).map((_, i) => (
                   <div key={i} className="flex-1 bg-gray-200 rounded-sm overflow-hidden">
                     {orderData.images[i] && (
                       <img
@@ -339,7 +389,7 @@ export default function PayStep1() {
                 <h3 style={{color: "black"}} className="text-2xl font-black">
                   {orderData.product.title}
                 </h3>
-                <p className="text-gray-500 text-sm mb-4">{orderData.template.title} 레이아웃</p>
+                <p className="text-gray-500 text-sm mb-4">{} 레이아웃</p>
                 <p style={{color: "black"}} className="text-xl font-bold">
                   {orderData.product.price.toLocaleString()}원
                 </p>
@@ -377,7 +427,7 @@ export default function PayStep1() {
                 />
                 <button
                   onClick={handleAuthRequest}
-                  className="bg-gray-900 text-white px-6 rounded-xl font-bold text-sm"
+                  className="bg-gray-900 text-white px-4 rounded-xl font-bold text-sm"
                 >
                   인증번호
                 </button>
@@ -416,11 +466,30 @@ export default function PayStep1() {
               onClick={processPayment}
               className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-xl shadow-xl flex items-center justify-center gap-3"
             >
-              <CreditCard className="w-6 h-6" /> 토스페이 결제하기
+              <CreditCard className="w-6 h-6" /> 결제하기
             </button>
           </div>
         )}
-
+        
+        {/*결제모달*/}
+        <div className="paymentModalWrapper">
+          <X className={styles.x}/>
+          
+          <div className={clsx(styles.paymentModal, isPaying ? styles.on : styles.off)}>
+            <div id="payment-method" className={styles.paymentMethod}></div>
+            <div id="agreement" className={styles.agreement}></div>
+            <button
+              onClick={payToss}
+              className="w-[80%] mx-auto bg-blue-600 text-white py-5 rounded-2xl font-bold text-xl shadow-xl flex items-center justify-center gap-3"
+            >
+              <CreditCard className="w-6 h-6" /> 결제하기
+            </button>
+          </div>
+          
+          <div className={clsx(styles.cover, isPaying ? styles.on : styles.off)}></div>
+        </div>
+        
+        
         {/* Step 6: 결제 성공 */}
         {orderStep === 6 && (
           <div className="text-center py-12 animate-in zoom-in duration-500">

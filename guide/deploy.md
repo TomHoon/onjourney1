@@ -83,7 +83,7 @@ docker pull tomhoon/photo-print:latest
 
 ```bash
 docker run -d \
-  -p 3000:3000 \
+  -p 9322:3000 \
   --name photo-print \
   <dockerhub-id>/<image-name>:<tag>
 ```
@@ -91,7 +91,7 @@ docker run -d \
 예시
 
 ```bash
-docker run -d -p 3000:3000 --name photo-print tomhoon/photo-print:latest
+docker run -d -p 9322:3000 --name photo-print tomhoon/photo-print:latest
 ```
 
 ---

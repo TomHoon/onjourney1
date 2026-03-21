@@ -18,7 +18,7 @@ import {
   Smartphone,
   UploadCloud,
 } from "lucide-react";
-import PolaroidMaker from "./PolaroidMaker";
+// import PolaroidMaker from "./PolaroidMaker";
 
 // --- Types & Interfaces ---
 interface Product {
@@ -131,8 +131,8 @@ export default function Home() {
   }
 
   // 주문 프로세스 뷰 (Step 1 ~ 7)
-  return (
-    <PolaroidMaker />
+  // return (
+    // <PolaroidMaker />
     // <div className="min-h-screen bg-gray-50 pt-20 pb-10">
     // 	<div className="max-w-3xl mx-auto px-4">
     // 		{/* Step Indicator */}
@@ -364,5 +364,5 @@ export default function Home() {
     // 		)}
     // 	</div>
     // </div>
-  );
+  // );
 }

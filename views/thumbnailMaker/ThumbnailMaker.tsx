@@ -20,8 +20,8 @@ import {compositionOptions} from "./mocks/mock";
 import Header from "./components/Header";
 
 export default function ThumbnailMaker() {
-  const [subtitle, setSubtitle] = useState("작은 실천으로 시작하는 건강한 하루");
-  const [title, setTitle] = useState("건강을 지키는 생활 습관");
+  const [subtitle, setSubtitle] = useState("");
+  const [title, setTitle] = useState("");
   const [composition, setComposition] = useState("");
   const [language, setLanguage] = useState("ko");
   const [selectedFont, setSelectedFont] = useState("font-nanum");
