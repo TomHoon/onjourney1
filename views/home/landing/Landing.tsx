@@ -1,12 +1,74 @@
-import {Camera} from "lucide-react";
+"use client";
+
+import React, {useState, useRef, ChangeEvent, useEffect} from "react";
+import {
+  Camera,
+  Image as ImageIcon,
+  Book,
+  Car,
+  Upload,
+  Settings2,
+  Truck,
+  ArrowRight,
+  Menu,
+  X,
+  ChevronLeft,
+  Check,
+  CreditCard,
+  Smartphone,
+  UploadCloud,
+} from "lucide-react";
+
+interface Product {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  color: string;
+  price: number;
+}
+
+interface Template {
+  id: string;
+  title: string;
+  slots: number;
+}
+
+interface UserInfo {
+  name: string;
+  phone: string;
+  authCode: string;
+  isAuthed: boolean;
+}
+
+interface OrderData {
+  product: Product | null;
+  template: Template | null;
+  images: {[key: number]: string};
+  caption: string;
+  userInfo: UserInfo;
+}
+
+type ViewMode = "landing" | "order";
 
 export default function Landing() {
-  // --- 핸들러 함수 ---
-  const startOrder = (): void => {
-    setView("order");
-    setOrderStep(1);
-    window.scrollTo(0, 0);
-  };
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [view, setView] = useState<ViewMode>("landing");
+  const [orderStep, setOrderStep] = useState<number>(1);
+
+  // 주문 데이터 상태 초기화
+  const [orderData, setOrderData] = useState<OrderData>({
+    product: null,
+    template: null,
+    images: {},
+    caption: "",
+    userInfo: {name: "", phone: "", authCode: "", isAuthed: false},
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+
+  // --- 데이터 정의 ---
+  // bg-indigo-50 대신 배경색이 더 잘 보이는 클래스로 조정 및 배경색 명시
   const products: Product[] = [
     {id: "diffuser", title: "차량용 디퓨저", icon: <Car />, color: "bg-indigo-100", price: 25000},
     {id: "diary", title: "커스텀 다이어리", icon: <Book />, color: "bg-emerald-100", price: 18000},
@@ -19,6 +81,56 @@ export default function Landing() {
     },
   ];
 
+  const templates: Template[] = [
+    {id: "1-grid", title: "1분할", slots: 1},
+    {id: "2-grid", title: "2분할", slots: 2},
+    {id: "4-grid", title: "4분할", slots: 4},
+  ];
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
+    if (file && activeSlot !== null) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setOrderData((prev) => ({
+          ...prev,
+          images: {...prev.images, [activeSlot]: reader.result as string},
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAuthRequest = (): void => {
+    if (!orderData.userInfo.phone) return alert("휴대폰 번호를 입력해주세요.");
+    alert("인증번호가 발송되었습니다. (테스트용: 1234)");
+  };
+
+  const handleAuthConfirm = (): void => {
+    if (orderData.userInfo.authCode === "1234") {
+      setOrderData((prev) => ({
+        ...prev,
+        userInfo: {...prev.userInfo, isAuthed: true},
+      }));
+      alert("인증에 성공했습니다.");
+    } else {
+      alert("인증번호가 올바르지 않습니다.");
+    }
+  };
+
+  const processPayment = (): void => {
+    if (!orderData.userInfo.isAuthed) return alert("본인 인증이 필요합니다.");
+    const isSuccess = Math.random() > 0.1;
+    setOrderStep(isSuccess ? 6 : 7);
+  };
+
+  // --- 핸들러 함수 ---
+  const startOrder = (): void => {
+    setView("order");
+    setOrderStep(1);
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
@@ -29,7 +141,7 @@ export default function Landing() {
               onClick={() => window.scrollTo(0, 0)}
             >
               <Camera className="w-8 h-8 text-blue-600" />
-              <span className="font-bold text-xl tracking-tight text-gray-900">Mемо리핏</span>
+              <span className="font-bold text-xl tracking-tight text-gray-900">OnJourney</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a
